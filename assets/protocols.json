@@ -14,6 +14,10 @@
         },
         "dropseq": {
             "protocol": "dropseq"
+        },
+        "auto": {
+            "protocol": "auto",
+            "whitelist": "assets/whitelist/"
         }
     },
     "cellranger": {

@@ -85,7 +85,11 @@ ch_multiqc_cellranger = Channel.empty()
 if (params.barcode_whitelist) {
     ch_barcode_whitelist = file(params.barcode_whitelist)
 } else if (protocol_config.containsKey("whitelist")) {
-    ch_barcode_whitelist = file("$projectDir/${protocol_config['whitelist']}")
+    if (params.aligner == 'alevin' && params.protocol == 'auto') {
+        ch_barcode_whitelist = "$baseDir/assets/whitelist/"
+    }else {
+        ch_barcode_whitelist = file("$projectDir/${protocol_config['whitelist']}")
+    }
 } else {
     ch_barcode_whitelist = []
 }

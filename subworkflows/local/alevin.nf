@@ -3,6 +3,8 @@ include { GFFREAD_TRANSCRIPTOME }             from '../../modules/local/gffread_
 include { ALEVINQC              }             from '../../modules/local/alevinqc'
 include { SIMPLEAF_INDEX        }             from '../../modules/local/simpleaf_index'
 include { SIMPLEAF_QUANT        }             from '../../modules/local/simpleaf_quant'
+include { SIMPLEAF_QUANT_AUTO        }        from '../../modules/local/simpleaf_quant_auto'
+
 
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
 include { GUNZIP }                      from '../../modules/nf-core/gunzip/main'
@@ -49,7 +51,26 @@ workflow SCRNASEQ_ALEVIN {
     /*
     * Perform quantification with salmon alevin
     */
-    SIMPLEAF_QUANT (
+    if (protocol == 'auto'){
+        println 'The protocol will be automatically detected'
+        SIMPLEAF_QUANT_AUTO (
+        ch_fastq,
+        salmon_index,
+        txp2gene,
+        protocol,
+        barcode_whitelist
+    )
+    ch_versions = ch_versions.mix(SIMPLEAF_QUANT_AUTO.out.versions)
+    /*
+    * Run alevinQC
+    */
+    ALEVINQC( SIMPLEAF_QUANT_AUTO.out.alevin_results )
+    ch_versions = ch_versions.mix(ALEVINQC.out.versions)
+    alevin_results = SIMPLEAF_QUANT_AUTO.out.alevin_results
+
+    }else{
+        println 'The protocol is: '+protocol
+        SIMPLEAF_QUANT (
         ch_fastq,
         salmon_index,
         txp2gene,
@@ -63,9 +84,11 @@ workflow SCRNASEQ_ALEVIN {
     */
     ALEVINQC( SIMPLEAF_QUANT.out.alevin_results )
     ch_versions = ch_versions.mix(ALEVINQC.out.versions)
-
+    alevin_results = SIMPLEAF_QUANT.out.alevin_results
+    }
+    
     emit:
     ch_versions
-    alevin_results = SIMPLEAF_QUANT.out.alevin_results
+    alevin_results
     alevinqc = ALEVINQC.out.report
 }
