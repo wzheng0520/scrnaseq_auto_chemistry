@@ -51,6 +51,8 @@ workflow SCRNASEQ_ALEVIN {
     /*
     * Perform quantification with salmon alevin
     */
+    
+    // If protocol is auto, the process SIMPLEAF_QUANT_AUTO will be used to automatically detect the protocol
     if (protocol == 'auto'){
         println 'The protocol will be automatically detected'
         SIMPLEAF_QUANT_AUTO (
@@ -69,6 +71,7 @@ workflow SCRNASEQ_ALEVIN {
     alevin_results = SIMPLEAF_QUANT_AUTO.out.alevin_results
 
     }else{
+        // If protocol is assigned, the process SIMPLEAF_QUANT will be used with assigned protocol
         println 'The protocol is: '+protocol
         SIMPLEAF_QUANT (
         ch_fastq,

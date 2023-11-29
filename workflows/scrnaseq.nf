@@ -82,6 +82,9 @@ ch_txp2gene = params.txp2gene ? file(params.txp2gene) : []
 ch_multiqc_alevin = Channel.empty()
 ch_multiqc_star = Channel.empty()
 ch_multiqc_cellranger = Channel.empty()
+
+// If the aliger is alevin and protocol is auto, the ch_barcode_whitelist will be the whole folder, in order to make sure the correct whitelist could be choose for SIMPLE_QUANT.
+
 if (params.barcode_whitelist) {
     ch_barcode_whitelist = file(params.barcode_whitelist)
 } else if (protocol_config.containsKey("whitelist")) {
