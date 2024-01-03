@@ -54,12 +54,10 @@ workflow SCRNASEQ_ALEVIN {
     
     // If protocol is auto, the process SIMPLEAF_QUANT_AUTO will be used to automatically detect the protocol
     if (protocol == 'auto'){
-        println 'The protocol will be automatically detected'
         SIMPLEAF_QUANT_AUTO (
         ch_fastq,
         salmon_index,
         txp2gene,
-        protocol,
         barcode_whitelist
     )
     ch_versions = ch_versions.mix(SIMPLEAF_QUANT_AUTO.out.versions)
@@ -72,7 +70,6 @@ workflow SCRNASEQ_ALEVIN {
 
     }else{
         // If protocol is assigned, the process SIMPLEAF_QUANT will be used with assigned protocol
-        println 'The protocol is: '+protocol
         SIMPLEAF_QUANT (
         ch_fastq,
         salmon_index,
