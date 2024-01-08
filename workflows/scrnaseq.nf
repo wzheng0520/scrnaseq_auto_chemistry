@@ -37,15 +37,16 @@ ch_multiqc_custom_methods_description = params.multiqc_methods_description ? fil
 //
 // SUBWORKFLOW: Consisting of a mix of local and nf-core/modules
 //
-include { INPUT_CHECK       } from '../subworkflows/local/input_check'
-include { FASTQC_CHECK      } from '../subworkflows/local/fastqc'
-include { KALLISTO_BUSTOOLS } from '../subworkflows/local/kallisto_bustools'
-include { SCRNASEQ_ALEVIN   } from '../subworkflows/local/alevin'
-include { STARSOLO          } from '../subworkflows/local/starsolo'
-include { CELLRANGER_ALIGN  } from "../subworkflows/local/align_cellranger"
-include { UNIVERSC_ALIGN    } from "../subworkflows/local/align_universc"
-include { MTX_CONVERSION    } from "../subworkflows/local/mtx_conversion"
-include { GTF_GENE_FILTER   } from '../modules/local/gtf_gene_filter'
+include { INPUT_CHECK          } from '../subworkflows/local/input_check'
+include { FASTQC_CHECK         } from '../subworkflows/local/fastqc'
+include { KALLISTO_BUSTOOLS    } from '../subworkflows/local/kallisto_bustools'
+include { SCRNASEQ_ALEVIN      } from '../subworkflows/local/alevin'
+include { STARSOLO             } from '../subworkflows/local/starsolo'
+include { CELLRANGER_ALIGN     } from "../subworkflows/local/align_cellranger"
+include { UNIVERSC_ALIGN       } from "../subworkflows/local/align_universc"
+include { MTX_CONVERSION       } from "../subworkflows/local/mtx_conversion"
+include { GTF_GENE_FILTER      } from '../modules/local/gtf_gene_filter'
+include { AUTO_DETECT_PROTOCOL } from '../modules/local/auto_detect_protocol'
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     IMPORT NF-CORE MODULES/SUBWORKFLOWS
@@ -69,9 +70,6 @@ include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 ch_output_docs = file("$projectDir/docs/output.md", checkIfExists: true)
 ch_output_docs_images = file("$projectDir/docs/images/", checkIfExists: true)
 protocol_config = WorkflowScrnaseq.getProtocol(workflow, log, params.aligner, params.protocol)
-if (protocol_config['protocol'] == 'auto' && (params.aligner != "cellranger" && params.aligner != "alevin")) {
-    error "Only cellranger supports `protocol = 'auto'`. Please specify the protocol manually!"
-}
 
 // general input and params
 ch_input = file(params.input)
@@ -82,21 +80,6 @@ ch_txp2gene = params.txp2gene ? file(params.txp2gene) : []
 ch_multiqc_alevin = Channel.empty()
 ch_multiqc_star = Channel.empty()
 ch_multiqc_cellranger = Channel.empty()
-
-// If the aliger is alevin and protocol is auto, the ch_barcode_whitelist will be the whole folder, in order to make sure the correct whitelist could be choose for SIMPLE_QUANT.
-
-if (params.barcode_whitelist) {
-    ch_barcode_whitelist = file(params.barcode_whitelist)
-} else if (protocol_config.containsKey("whitelist")) {
-    if (params.aligner == 'alevin' && params.protocol == 'auto') {
-        ch_barcode_whitelist = "$baseDir/assets/whitelist/"
-    }else {
-        ch_barcode_whitelist = file("$projectDir/${protocol_config['whitelist']}")
-    }
-} else {
-    ch_barcode_whitelist = []
-}
-
 
 //kallisto params
 ch_kallisto_index = params.kallisto_index ? file(params.kallisto_index) : []
@@ -140,6 +123,13 @@ workflow SCRNASEQ {
 
     ch_filter_gtf = GTF_GENE_FILTER ( ch_genome_fasta, ch_gtf ).gtf
 
+    if (params.aligner != 'cellranger' && params.aligner != 'universc') {
+        AUTO_DETECT_PROTOCOL(ch_fastq, params.aligner, params.protocol)
+        ch_barcode_whitelist = AUTO_DETECT_PROTOCOL.out.whitelist
+    }
+    if (params.barcode_whitelist)
+        ch_barcode_whitelist = file(params.barcode_whitelist)
+
     // Run kallisto bustools pipeline
     if (params.aligner == "kallisto") {
         KALLISTO_BUSTOOLS(
@@ -147,9 +137,9 @@ workflow SCRNASEQ {
             ch_filter_gtf,
             ch_kallisto_index,
             ch_txp2gene,
-            protocol_config['protocol'],
+            AUTO_DETECT_PROTOCOL.out.protocol,
             kb_workflow,
-            ch_fastq
+            AUTO_DETECT_PROTOCOL.out.ch_fastq
         )
         ch_versions = ch_versions.mix(KALLISTO_BUSTOOLS.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix(KALLISTO_BUSTOOLS.out.counts)
@@ -165,8 +155,8 @@ workflow SCRNASEQ {
             ch_salmon_index,
             ch_txp2gene,
             ch_barcode_whitelist,
-            protocol_config['protocol'],
-            ch_fastq
+            AUTO_DETECT_PROTOCOL.out.protocol,
+            AUTO_DETECT_PROTOCOL.out.ch_fastq
         )
         ch_versions = ch_versions.mix(SCRNASEQ_ALEVIN.out.ch_versions)
         ch_multiqc_alevin = SCRNASEQ_ALEVIN.out.alevin_results
@@ -179,11 +169,11 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             ch_star_index,
-            protocol_config['protocol'],
+            AUTO_DETECT_PROTOCOL.out.protocol,
             ch_barcode_whitelist,
-            ch_fastq,
+            AUTO_DETECT_PROTOCOL.out.ch_fastq,
             star_feature,
-            protocol_config.get('extra_args', ""),
+            AUTO_DETECT_PROTOCOL.out.extra_args,
         )
         ch_versions = ch_versions.mix(STARSOLO.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix(STARSOLO.out.star_counts)
@@ -215,6 +205,7 @@ workflow SCRNASEQ {
             ch_filter_gtf,
             ch_universc_index,
             protocol_config['protocol'],
+            protocol_config['chemistry'],
             ch_fastq
         )
         ch_versions = ch_versions.mix(UNIVERSC_ALIGN.out.ch_versions)
