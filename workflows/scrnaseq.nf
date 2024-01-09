@@ -69,6 +69,7 @@ include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 // TODO: Are this channels still necessary?
 ch_output_docs = file("$projectDir/docs/output.md", checkIfExists: true)
 ch_output_docs_images = file("$projectDir/docs/images/", checkIfExists: true)
+protocol_config = WorkflowScrnaseq.getProtocol(workflow, log, params.aligner, params.protocol)
 
 // general input and params
 ch_input = file(params.input)
@@ -121,17 +122,14 @@ workflow SCRNASEQ {
     }
 
     ch_filter_gtf = GTF_GENE_FILTER ( ch_genome_fasta, ch_gtf ).gtf
-
-    protocol_config = WorkflowScrnaseq.getProtocol(workflow, log, params.aligner, params.protocol)
-    ch_protocol = Channel.of(protocol_config['protocol'])
     ch_extra_args = Channel.empty()
-    ch_barcode_whitelist = file("$projectDir/assets/whitelist/" + protocol_config['whitelist'])
+    ch_barcode_whitelist = file("$projectDir/" + protocol_config['whitelist'])
     if (protocol_config.containsKey('extra_args'))
         ch_extra_args = Channel.of(protocol_config['extra_args'])
-    if (params.protocol == 'auto' && params.aligner != 'cellranger' && params.aligner != 'universc') {
-        AUTO_DETECT_PROTOCOL(ch_fastq, params.aligner, "$projectDir/assets/whitelist", "$projectDir/assets/protocols.json")
+    if (protocol_config['protocol'] == 'auto' && params.aligner != 'cellranger' && params.aligner != 'universc') {
+        AUTO_DETECT_PROTOCOL(ch_fastq, params.aligner)
+        protocol_config['protocol'] = AUTO_DETECT_PROTOCOL.out.protocol
         ch_fastq = AUTO_DETECT_PROTOCOL.out.ch_fastq
-        ch_protocol = AUTO_DETECT_PROTOCOL.out.protocol
         ch_barcode_whitelist = AUTO_DETECT_PROTOCOL.out.whitelist
         ch_extra_args = AUTO_DETECT_PROTOCOL.out.extra_args
     }
@@ -145,7 +143,7 @@ workflow SCRNASEQ {
             ch_filter_gtf,
             ch_kallisto_index,
             ch_txp2gene,
-            ch_protocol,
+            protocol_config['protocol'],
             kb_workflow,
             ch_fastq
         )
@@ -163,7 +161,7 @@ workflow SCRNASEQ {
             ch_salmon_index,
             ch_txp2gene,
             ch_barcode_whitelist,
-            ch_protocol,
+            protocol_config['protocol'],
             ch_fastq
         )
         ch_versions = ch_versions.mix(SCRNASEQ_ALEVIN.out.ch_versions)
@@ -177,11 +175,11 @@ workflow SCRNASEQ {
             ch_genome_fasta,
             ch_filter_gtf,
             ch_star_index,
-            ch_protocol,
+            protocol_config['protocol'],
             ch_barcode_whitelist,
             ch_fastq,
             star_feature,
-            ch_extra_args,
+            ch_extra_args
         )
         ch_versions = ch_versions.mix(STARSOLO.out.ch_versions)
         ch_mtx_matrices = ch_mtx_matrices.mix(STARSOLO.out.star_counts)

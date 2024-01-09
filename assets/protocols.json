@@ -2,15 +2,15 @@
     "alevin": {
         "10XV1": {
             "protocol": "10xv1",
-            "whitelist": "10x_V1_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V1_barcode_whitelist.txt.gz"
         },
         "10XV2": {
             "protocol": "10xv2",
-            "whitelist": "10x_V2_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V2_barcode_whitelist.txt.gz"
         },
         "10XV3": {
             "protocol": "10xv3",
-            "whitelist": "10x_V3_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V3_barcode_whitelist.txt.gz"
         },
         "dropseq": {
             "protocol": "dropseq"
@@ -37,17 +37,17 @@
         "10XV1": {
             "protocol": "CB_UMI_Simple",
             "extra_args": "--soloUMIlen 10",
-            "whitelist": "10x_V1_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V1_barcode_whitelist.txt.gz"
         },
         "10XV2": {
             "protocol": "CB_UMI_Simple",
             "extra_args": "--soloUMIlen 10",
-            "whitelist": "10x_V2_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V2_barcode_whitelist.txt.gz"
         },
         "10XV3": {
             "protocol": "CB_UMI_Simple",
             "extra_args": "--soloUMIlen 12",
-            "whitelist": "10x_V3_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V3_barcode_whitelist.txt.gz"
         },
         "dropseq": {
             "protocol": "CB_UMI_Simple"
@@ -62,15 +62,15 @@
     "kallisto": {
         "10XV1": {
             "protocol": "10XV1",
-            "whitelist": "10x_V1_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V1_barcode_whitelist.txt.gz"
         },
         "10XV2": {
             "protocol": "10XV2",
-            "whitelist": "10x_V2_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V2_barcode_whitelist.txt.gz"
         },
         "10XV3": {
             "protocol": "10XV3",
-            "whitelist": "10x_V3_barcode_whitelist.txt.gz"
+            "whitelist": "assets/whitelist/10x_V3_barcode_whitelist.txt.gz"
         },
         "dropseq": {
             "protocol": "DROPSEQ"
