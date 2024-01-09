@@ -60,7 +60,7 @@ process AUTO_DETECT_PROTOCOL {
     done > detected_protocol
 
     KEY=\$(cat detected_protocol)
-    if [ \$(wc -w detected_protocol) -ne 1 ]; then
+    if [ \$(wc -w < detected_protocol) -ne 1 ]; then
          echo "ERROR: protocol detection failed: \$KEY"
          exit 1
     fi
