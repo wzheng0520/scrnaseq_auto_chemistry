@@ -11,6 +11,7 @@ process AUTO_DETECT_PROTOCOL {
     // the first FastQ file in `reads` is expected to contain the cell barcodes
     tuple val(meta), path(reads)
     val aligner
+    path projectDir
 
     output:
     tuple val(meta), path(reads), emit: ch_fastq
@@ -31,7 +32,7 @@ process AUTO_DETECT_PROTOCOL {
             ."$aligner" |
             to_entries[] |
             "\\(.key)\\t\\(.value.protocol//"")\\t\\(.value.whitelist//"")\\t\\(.value.extra_args//"")"
-        ' "${baseDir}/assets/protocols.json"
+        ' "${projectDir}/assets/protocols.json"
     )
 
     # iterate over all protocols defined for the selected aligner
@@ -40,7 +41,7 @@ process AUTO_DETECT_PROTOCOL {
         # uncompress whitelist
         WHITELIST=\$(grep -w "^\$KEY" <<<"\$TABLE" | cut -f3)
         [ -n "\$WHITELIST" ] || continue # skip protocols without whitelist
-        gzip -dcf "${baseDir}/\$WHITELIST" > barcodes
+        gzip -dcf "${projectDir}/\$WHITELIST" > barcodes
 
         # subsample the FastQ file
         gzip -dcf "${reads[0]}" |
@@ -65,7 +66,7 @@ process AUTO_DETECT_PROTOCOL {
     # extract attributes of chosen protocol
     PROTOCOL=\$(grep -w "^\$KEY" <<<"\$TABLE" | cut -f2)
     WHITELIST=\$(grep -w "^\$KEY" <<<"\$TABLE" | cut -f3)
-    [ -z "\$WHITELIST" ] || cp "${baseDir}/\$WHITELIST" .
+    [ -z "\$WHITELIST" ] || cp "${projectDir}/\$WHITELIST" .
     EXTRA_ARGS=\$(grep -w "^\$KEY" <<<"\$TABLE" | cut -f4)
 
     cat <<-END_VERSIONS > versions.yml

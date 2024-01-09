@@ -127,7 +127,7 @@ workflow SCRNASEQ {
     if (protocol_config.containsKey('extra_args'))
         ch_extra_args = Channel.of(protocol_config['extra_args'])
     if (protocol_config['protocol'] == 'auto' && params.aligner != 'cellranger' && params.aligner != 'universc') {
-        AUTO_DETECT_PROTOCOL(ch_fastq, params.aligner)
+        AUTO_DETECT_PROTOCOL(ch_fastq, params.aligner, projectDir)
         protocol_config['protocol'] = AUTO_DETECT_PROTOCOL.out.protocol
         ch_fastq = AUTO_DETECT_PROTOCOL.out.ch_fastq
         ch_barcode_whitelist = AUTO_DETECT_PROTOCOL.out.whitelist
