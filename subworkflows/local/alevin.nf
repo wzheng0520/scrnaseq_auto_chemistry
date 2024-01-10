@@ -63,7 +63,7 @@ workflow SCRNASEQ_ALEVIN {
     */
     ALEVINQC( SIMPLEAF_QUANT.out.alevin_results )
     ch_versions = ch_versions.mix(ALEVINQC.out.versions)
-    
+
     emit:
     ch_versions
     alevin_results = SIMPLEAF_QUANT.out.alevin_results
