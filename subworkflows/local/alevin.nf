@@ -4,7 +4,6 @@ include { ALEVINQC              }             from '../../modules/local/alevinqc
 include { SIMPLEAF_INDEX        }             from '../../modules/local/simpleaf_index'
 include { SIMPLEAF_QUANT        }             from '../../modules/local/simpleaf_quant'
 
-
 /* --    IMPORT NF-CORE MODULES/SUBWORKFLOWS   -- */
 include { GUNZIP }                      from '../../modules/nf-core/gunzip/main'
 include { GFFREAD as GFFREAD_TXP2GENE } from '../../modules/nf-core/gffread/main'
@@ -45,6 +44,8 @@ workflow SCRNASEQ_ALEVIN {
         }
     }
 
+
+
     /*
     * Perform quantification with salmon alevin
     */
@@ -62,10 +63,9 @@ workflow SCRNASEQ_ALEVIN {
     */
     ALEVINQC( SIMPLEAF_QUANT.out.alevin_results )
     ch_versions = ch_versions.mix(ALEVINQC.out.versions)
-    alevin_results = SIMPLEAF_QUANT.out.alevin_results
     
     emit:
     ch_versions
-    alevin_results
+    alevin_results = SIMPLEAF_QUANT.out.alevin_results
     alevinqc = ALEVINQC.out.report
 }
