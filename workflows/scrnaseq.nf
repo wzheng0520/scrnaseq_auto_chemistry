@@ -47,6 +47,7 @@ include { CELLRANGERARC_ALIGN  } from "../subworkflows/local/align_cellrangerarc
 include { UNIVERSC_ALIGN    } from "../subworkflows/local/align_universc"
 include { MTX_CONVERSION    } from "../subworkflows/local/mtx_conversion"
 include { GTF_GENE_FILTER   } from '../modules/local/gtf_gene_filter'
+include { AUTO_DETECT_PROTOCOL } from '../modules/local/auto_detect_protocol'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -71,9 +72,9 @@ include { MULTIQC                     } from '../modules/nf-core/multiqc/main'
 ch_output_docs = file("$projectDir/docs/output.md", checkIfExists: true)
 ch_output_docs_images = file("$projectDir/docs/images/", checkIfExists: true)
 protocol_config = WorkflowScrnaseq.getProtocol(workflow, log, params.aligner, params.protocol)
-if (protocol_config['protocol'] == 'auto' && params.aligner != "cellranger") {
-    error "Only cellranger supports `protocol = 'auto'`. Please specify the protocol manually!"
-}
+//if (protocol_config['protocol'] == 'auto' && params.aligner != "cellranger") {
+    //error "Only cellranger supports `protocol = 'auto'`. Please specify the protocol manually!"
+//}
 
 // general input and params
 ch_input = file(params.input)
@@ -86,13 +87,13 @@ ch_txp2gene = params.txp2gene ? file(params.txp2gene) : []
 ch_multiqc_alevin = Channel.empty()
 ch_multiqc_star = Channel.empty()
 ch_multiqc_cellranger = Channel.empty()
-if (params.barcode_whitelist) {
-    ch_barcode_whitelist = file(params.barcode_whitelist)
-} else if (protocol_config.containsKey("whitelist")) {
-    ch_barcode_whitelist = file("$projectDir/${protocol_config['whitelist']}")
-} else {
-    ch_barcode_whitelist = []
-}
+//if (params.barcode_whitelist) {
+    //ch_barcode_whitelist = file(params.barcode_whitelist)
+//} else if (protocol_config.containsKey("whitelist")) {
+    //ch_barcode_whitelist = file("$projectDir/${protocol_config['whitelist']}")
+//} else {
+    //ch_barcode_whitelist = []
+//}
 
 
 //kallisto params
@@ -136,6 +137,20 @@ workflow SCRNASEQ {
     }
 
     ch_filter_gtf = GTF_GENE_FILTER ( ch_genome_fasta, ch_gtf ).gtf
+    ch_extra_args = Channel.empty()
+    ch_barcode_whitelist = file("$projectDir/" + protocol_config['whitelist'])
+    if (protocol_config.containsKey('extra_args'))
+        ch_extra_args = Channel.of(protocol_config['extra_args'])
+    if (protocol_config['protocol'] == 'auto' && params.aligner != 'cellranger' && params.aligner != 'universc' && params.aligner != 'cellrangerarc') {
+        AUTO_DETECT_PROTOCOL(ch_fastq, params.aligner, projectDir)
+        protocol_config['protocol'] = AUTO_DETECT_PROTOCOL.out.protocol
+        ch_fastq = AUTO_DETECT_PROTOCOL.out.ch_fastq
+        ch_barcode_whitelist = AUTO_DETECT_PROTOCOL.out.whitelist
+        ch_extra_args = AUTO_DETECT_PROTOCOL.out.extra_args
+    }
+    if (params.barcode_whitelist)
+        ch_barcode_whitelist = file(params.barcode_whitelist)
+
 
     // Run kallisto bustools pipeline
     if (params.aligner == "kallisto") {

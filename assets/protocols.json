@@ -1,7 +1,7 @@
 {
     "alevin": {
         "10XV1": {
-            "protocol": "10xv1",
+            "protocol": "1{b[14]u[10]x:}2{r:}",
             "whitelist": "assets/whitelist/10x_V1_barcode_whitelist.txt.gz"
         },
         "10XV2": {
@@ -14,9 +14,26 @@
         },
         "dropseq": {
             "protocol": "dropseq"
+        },
+        "auto": {
+            "protocol": "auto"
         }
     },
     "cellranger": {
+        "auto": {
+            "protocol": "auto"
+        },
+        "10XV1": {
+            "protocol": "SC3Pv1"
+        },
+        "10XV2": {
+            "protocol": "SC3Pv2"
+        },
+        "10XV3": {
+            "protocol": "SC3Pv3"
+        }
+    },
+    "cellrangerarc": {
         "auto": {
             "protocol": "auto"
         },
@@ -51,40 +68,54 @@
         },
         "smartseq": {
             "protocol": "SmartSeq"
+        },
+        "auto": {
+            "protocol": "auto"
         }
     },
     "kallisto": {
         "10XV1": {
-            "protocol": "10XV1"
+            "protocol": "10XV1",
+            "whitelist": "assets/whitelist/10x_V1_barcode_whitelist.txt.gz"
         },
         "10XV2": {
-            "protocol": "10XV2"
+            "protocol": "10XV2",
+            "whitelist": "assets/whitelist/10x_V2_barcode_whitelist.txt.gz"
         },
         "10XV3": {
-            "protocol": "10XV3"
+            "protocol": "10XV3",
+            "whitelist": "assets/whitelist/10x_V3_barcode_whitelist.txt.gz"
         },
         "dropseq": {
             "protocol": "DROPSEQ"
         },
         "smartseq": {
             "protocol": "SMARTSEQ"
+        },
+        "auto": {
+            "protocol": "auto"
         }
     },
     "universc": {
         "auto": {
-            "protocol": "10x"
+            "protocol": "10x",
+            "chemistry": "auto"
         },
         "10XV1": {
-            "protocol": "10x-v1"
+            "protocol": "10x-v1",
+            "chemistry": "SC3Pv1"
         },
         "10XV2": {
-            "protocol": "10x-v2"
+            "protocol": "10x-v2",
+            "chemistry": "SC3Pv2"
         },
         "10XV3": {
-            "protocol": "10x-v3"
+            "protocol": "10x-v3",
+            "chemistry": "SC3Pv3"
         },
         "dropseq": {
-            "protocol": "dropseq"
+            "protocol": "dropseq",
+            "chemistry": "auto"
         }
     }
 }
