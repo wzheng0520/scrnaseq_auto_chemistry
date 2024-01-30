@@ -60,7 +60,7 @@ process AUTO_DETECT_PROTOCOL {
 
     # only trust the auto-detection if exactly one protocol matches
     echo -e "These were the fractions of matching barcodes by protocol:\\n\$MATCHING_FRACTIONS"
-    MATCHING_PROTOCOLS_COUNT=\$(awk '\$2>=0.85' <<<"\$MATCHING_FRACTIONS" | wc -l)
+    MATCHING_PROTOCOLS_COUNT=\$(awk '\$2>=0.7' <<<"\$MATCHING_FRACTIONS" | wc -l)
     if [ \$MATCHING_PROTOCOLS_COUNT -ne 1 ]; then
          echo "ERROR: Found \$MATCHING_PROTOCOLS_COUNT matching protocols."
          exit 1
