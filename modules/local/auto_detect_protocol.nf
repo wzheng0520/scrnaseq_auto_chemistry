@@ -36,7 +36,7 @@ process AUTO_DETECT_PROTOCOL {
     )
 
     # iterate over all protocols defined for the selected aligner
-    KEY=\$(cut -f1 <<<"\$TABLE" | while read KEY; do
+    MATCHING_FRACTIONS=\$(cut -f1 <<<"\$TABLE" | while read KEY; do
 
         # uncompress whitelist
         WHITELIST=\$(grep -w "^\$KEY" <<<"\$TABLE" | cut -f3)
@@ -49,19 +49,23 @@ process AUTO_DETECT_PROTOCOL {
         head -n 100000 > reads || true # the first 100k reads should suffice
 
         # extract the barcodes from the FastQ reads and count how many are valid barcodes
-        awk -v KEY="\$KEY" '
+        awk -v KEY="\$KEY" -v OFS='\\t' '
             { \$0 = substr(\$0, 1, 14) } # the barcode is in the first 14 bases; 10X V2/3 barcodes are trimmed
             FILENAME == "barcodes" { barcodes[\$0] } # cache barcodes in memory
             FILENAME == "reads" && \$0 in barcodes { count++ } # count matches for each chemistry
-            END { if (count/FNR > 0.85) print KEY } # output chemistries with >85% matches
+            END { print KEY, count/FNR } # output fraction of matching barcodes for each chemitry
         ' barcodes reads
 
-    done)
+    done | sort -k2,2gr)
 
-    if [ \$(wc -w <<<"\$KEY") -ne 1 ]; then
-         echo "ERROR: protocol detection failed: \$KEY"
+    # only trust the auto-detection if exactly one protocol matches
+    echo -e "These were the fractions of matching barcodes by protocol:\\n\$MATCHING_FRACTIONS"
+    MATCHING_PROTOCOLS_COUNT=\$(awk '\$2>=0.7' <<<"\$MATCHING_FRACTIONS" | wc -l)
+    if [ \$MATCHING_PROTOCOLS_COUNT -ne 1 ]; then
+         echo "ERROR: Found \$MATCHING_PROTOCOLS_COUNT matching protocols."
          exit 1
     fi
+    KEY=\$(cut -f1 <<<"\$MATCHING_FRACTIONS" | head -n1)
 
     # extract attributes of chosen protocol
     PROTOCOL=\$(grep -w "^\$KEY" <<<"\$TABLE" | cut -f2)
